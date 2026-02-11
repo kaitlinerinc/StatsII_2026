@@ -201,11 +201,7 @@ Coefficients:
 [1] 2.070927
 \end{verbatim}
 
-\noindent From the linear regression run with the lm function, the intercept was 0.1392, the beta coefficient for x was 2.7267, and sigma squared was 2.09322. From the linear.lik function, the intercept was 0.1398324, the beta coefficient for x was 2.7265559, and the calculated sigma squared was 2.070927. This suggests that we got very close to the values from the lm function.
-
-\vspace{.25cm}
-
-\noindent This suggests that Ordinary Least Squares and Maximum Likelihood will have approximately the same results when used to estimate a linear regression. While OLS is still more useful when our assumptions are met (because it gives an unbiased estimate of variance), MLE can be used in cases when the assumptions for linear regression using OLS are not met.
+\noindent From the linear regression run with the lm function, the intercept was 0.1392, the beta coefficient for x was 2.7267, and sigma squared was 2.09322. From the linear.lik function, the intercept was 0.1398324, the beta coefficient for x was 2.7265559, and the calculated sigma squared was 2.070927. This suggests that we got very close to the values from the lm function. This indicates that Ordinary Least Squares and Maximum Likelihood will have approximately the same results when used to estimate a linear regression (although this may not always be true of the variance in smaller samples). While OLS is still more useful when our assumptions are met (because it gives an unbiased estimate of variance), MLE can be used in cases when the assumptions for linear regression using OLS are not met.
 
 
 
