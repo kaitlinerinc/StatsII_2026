@@ -151,7 +151,7 @@ $$p(D \leq d)= \frac{\sqrt {2\pi}}{d} \sum _{k=1}^{\infty }e^{-(2k-1)^{2}\pi ^{2
 
 \begin{itemize}
 	\item The lm function is run, the result of which will be compared to the MLE function.
-	\item I also found sigma squared or the residual variance of the linear model be compared to the output of the MLE function.
+	\item I also found sigma squared or the residual variance of the linear model, so I can compare it to the output of the MLE function.
 \end{itemize}
 \lstinputlisting[language=R, firstline=79,lastline=80]{PS01_KC.R} 
 \begin{verbatim}
@@ -171,7 +171,7 @@ Coefficients:
 \underline{The linear.lik function} 
 
 \begin{itemize}
-	\item The linear.lik function is defined; it takes 3 arguments, theta, y, and x. Within the function:
+	\item The linear.lik function is defined; it takes 3 arguments, theta, y, and x. 
 	\item The variable n is assigned to the number of rows in x
 	\item The variable k is assigned to the number of columns in x
 	\item The variable beta is assigned to the regression coefficients, which are extracted from within theta
@@ -187,7 +187,7 @@ Coefficients:
 \item The optim function is used with our linear.lik function, the initial parameters all set to one, a hessian matrix is computed, our x and y values are set, and the method is set to BFGS (a quasi-Newton method); the result is assigned to the parameter linear.MLE and the parameters of linear.MLE are printed.
 \end{itemize}
 
-\lstinputlisting[language=R, firstline=110,lastline=111]{PS01_KC.R} 
+\lstinputlisting[language=R, firstline=110,lastline=113]{PS01_KC.R} 
 \begin{verbatim}
 [1]  0.1398324  2.7265559 -1.4390716
 \end{verbatim}
@@ -205,7 +205,7 @@ Coefficients:
 
 \vspace{.25cm}
 
-\noindent This suggests that Ordinary Least Squares and Maximum Likelihood will have approximately the same results when used to estimate a linear regression. While OLS is still more useful for a normal distribution because it gives an unbiased estimate of variance, MLE can be used in cases when the assumptions for linear regression using OLS are not met.
+\noindent This suggests that Ordinary Least Squares and Maximum Likelihood will have approximately the same results when used to estimate a linear regression. While OLS is still more useful when our assumptions are met (because it gives an unbiased estimate of variance), MLE can be used in cases when the assumptions for linear regression using OLS are not met.
 
 
 
