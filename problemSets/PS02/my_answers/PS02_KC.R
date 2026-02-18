@@ -36,10 +36,10 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 # Problem 1
 #####################
 
-# load data
+# Load data
 load(url("https://github.com/ASDS-TCD/StatsII_2026/blob/main/datasets/climateSupport.RData?raw=true"))
 
-#Switch to dummy variables
+#Switch to dummy coding
 contrasts(climateSupport$countries) <- contr.treatment
 contrasts(climateSupport$sanctions) <- contr.treatment
 

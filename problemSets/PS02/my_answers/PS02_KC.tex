@@ -144,7 +144,7 @@
 	Number of Fisher Scoring iterations: 4
 \end{verbatim}
 
-\noindent The global null hypothesis is that none of the input variables in the model are significant in predicting the output variable. This can be tested by running an ANOVA comparing our model to the null model in which choice is regressed on one.
+\noindent The global null hypothesis is that none of the input variables (countries and sanctions) in the model are significant in predicting the output variable (choice). This can be tested by running an ANOVA comparing our model to the null model.
 
 \lstinputlisting[language=R, firstline=56, lastline=57]{PS02_KC.R}
 
@@ -160,7 +160,7 @@
 	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 \end{verbatim}
 
-\noindent The p-value found from the ANOVA test is 2.2e-16. That is below our critical value of 0.05. So, we can reject the global null hypothesis that no variables in the model are statistically significant predictors of choice; at least one variable is significant.
+\noindent The p-value found from the ANOVA test is 2.2e-16. That is below our critical value of 0.05. So, we can reject the global null hypothesis that no variables in the model are statistically significant predictors of choice. This means that at least one variable is statistically significant.
 
 \section*{Question 2}
 
@@ -175,7 +175,7 @@
 		
 		\vspace{.5cm}
 		
-		\noindent To find the difference between the 5 percent coefficient and 15 percent coefficients, the coefficients were separately extracted from the summary of the additive model and assigned to different variables. Then the coefficients were stored in a vector because the diff function expects a vector. The diff function was used on the vector and the result was assigned to the variable coefficient\textunderscore difference, which was printed.
+		\noindent To find the difference between the 5 percent coefficient and 15 percent coefficient, the coefficients were separately extracted from the summary of the additive model and assigned to different variables. Then the coefficients were stored in a vector because the diff function expects a vector. The diff function was used on the vector and the result was assigned to the variable coefficient\textunderscore difference, which was printed.
 		
 		\lstinputlisting[language=R, firstline=65, lastline=69]{PS02_KC.R}
 		
@@ -257,7 +257,7 @@
 	\end{itemize}
 	\end{enumerate}
 	
-	\noindent The answers to 2a and 2b would potentially change if we included an interaction term in this model because it would allow for the relationship between sanctions and support for the policy to differ based on different levels of participating countries and vice versa. This means that the answers for 2a and 2b would no longer necessarily be the same, which they always would be in an additive model.
+	\noindent The answers to 2a and 2b would potentially change because adding an interaction term would account for the fact that the impact of an explanatory variable on the outcome variable could be influenced by another explanatory variable in the model. In this case, adding an interaction term allows for the relationship between sanctions and support for the policy to differ at different levels of participating countries and vice versa. This means that the answers for 2a and 2b would no longer always be the same.
 	
 	\lstinputlisting[language=R, firstline=122, lastline=126]{PS02_KC.R}
 	
@@ -271,6 +271,6 @@
 	 2      8488      11562  6   6.2928   0.3912
 	 \end{verbatim}
 
-\noindent The ANOVA has a p-value of 0.3912 which is larger than the critical value of 0.05, this suggest that the difference between models is not significant. For the sake of parsimony it may be better not to include and interaction effect, unless we have theoretical backing.
+\noindent The ANOVA has a p-value of 0.3912 which is larger than the critical value of 0.05, this suggest that the difference between models is not significant. For the sake of parsimony it may be better not to include an interaction effect, unless there is a theoretical backing.
 
 \end{document}
