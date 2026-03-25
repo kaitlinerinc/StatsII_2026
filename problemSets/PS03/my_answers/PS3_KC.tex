@@ -137,7 +137,7 @@
 
 \vspace{.25cm}
 
-\noindent Values in the column GDPWdiff were initially integers. In a new column, GDPWdiff\_category, the integers were transformed into 3 factors. If the integer was less than 0, then it was transformed to be the string "negative". If the integer was greater than 0, then it was transformed to be the string "positive". Otherwise, the integer equaled 0 and was transformed to be the string "no change".
+\noindent Values in the column GDPWdiff were initially integers. In a new column, GDPWdiff\_category, the integers were transformed into 3 factors. If the integer was less than 0, then it was transformed to be the category "negative". If the integer was greater than 0, then it was transformed to be the category "positive". Otherwise, the integer equaled 0 and was transformed to be the category "no change".
 
 \lstinputlisting[language=R, firstline=46, lastline=50]{PS3_KC.R}
 
@@ -171,27 +171,31 @@
 	AIC: 4690.77 
 \end{verbatim}
 
-\noindent The negative category intercept, 3.805370, represents the log-odds that a country's GDP difference will be negative, compared to the baseline category, no change, when the country is not a democracy and the country's average ratio of fuel exports to total exports in 1984-1986 did not exceed 50 percent.
+\noindent Note: The standard errors for OIL are quite high, approximately 6.89, which may be impacting the precision of results.
 
 \vspace{.25cm}
 
-\noindent The positive category intercept, 4.533759, represents the log-odds that a country's GDP difference will be positive, compared to the baseline category, no change, when the country is not a democracy and the country's average ratio of fuel exports to total exports in 1984-1986 did not exceed 50 percent.
+\noindent The negative category intercept, 3.805370, represents the log-odds that a country's GDP difference will be negative, as compared to the baseline category ("no change"), when the country is not a democracy and the country's average ratio of fuel exports to total exports in 1984-1986 did not exceed 50 percent.
 
 \vspace{.25cm}
 
-\noindent The negative category REG coefficient, 1.38, represents the log-odds that a country's GDP difference will be negative (compared to the baseline category of a no change) if a country is a democracy instead of a non-democracy.
+\noindent The positive category intercept, 4.533759, represents the log-odds that a country's GDP difference will be positive, as compared to the baseline category ("no change"), when the country is not a democracy and the country's average ratio of fuel exports to total exports in 1984-1986 did not exceed 50 percent.
 
 \vspace{.25cm}
 
-\noindent The positive category REG coefficient, 1.79, represents the log-odds that a country's GDP difference will be positive (compared to the baseline category of a no change) if a country is a democracy instead of a non-democracy.
+\noindent The negative category REG coefficient, 1.38, represents the log-odds that a country's GDP difference will be negative, holding OIL constant, as compared to the baseline category ("no change") if a country is a democracy instead of a non-democracy.
 
 \vspace{.25cm}
 
-\noindent The negative category OIL coefficient, 4.78, represents the log-odds that a country's GDP difference will be negative (compared to the baseline category of a no change) if a country's average ratio of fuel exports to total exports in 1984-1986 exceeded 50 percent (compared to if a country's fuel export ratio did not exceed 50 percent).
+\noindent The positive category REG coefficient, 1.79, represents the log-odds that a country's GDP difference will be positive, holding OIL constant, as compared to the baseline category ("no change") if a country is a democracy instead of a non-democracy.
 
 \vspace{.25cm}
 
-\noindent The positive category OIL coefficient, 4.57, represents the log-odds that a country's GDP difference will be positive (compared to the baseline category of a no change) if a country's average ratio of fuel exports to total exports in 1984-1986 exceeded 50 percent (compared to if a country's fuel export ratio did not exceed 50 percent).
+\noindent The negative category OIL coefficient, 4.78, represents the log-odds that a country's GDP difference will be negative, holding REG constant, as compared to the baseline category ("no change") if a country's average ratio of fuel exports to total exports in 1984-1986 exceeded 50 percent (compared to if a country's fuel export ratio did not exceed 50 percent).
+
+\vspace{.25cm}
+
+\noindent The positive category OIL coefficient, 4.57, represents the log-odds that a country's GDP difference will be positive, holding REG constant, as compared to the baseline category ("no change") if a country's average ratio of fuel exports to total exports in 1984-1986 exceeded 50 percent (compared to if a country's fuel export ratio did not exceed 50 percent).
 
 \vspace{.25cm}
 
@@ -204,27 +208,28 @@ negative    44.94186 3.972047 119.57794
 positive    93.10789 5.865024  97.15632
 \end{verbatim}
 
-\noindent The negative category intercept, 44.94, represents the odds (relative to the baseline category of no change) that a country's GDP difference will be negative, when the country is not a democracy and the country's average ratio of fuel exports to total exports in 1984-1986 did not exceed 50 percent.
+\noindent The odds are 44.94 times higher that a country's GDP difference will be negative (as opposed to the baseline category of "no change"), when the country is not a democracy and the country's average ratio of fuel exports to total exports in 1984-1986 did not exceed 50 percent.
 
 \vspace{.25cm}
 
-\noindent The positive category intercept, 93.11, represents the odds (relative to the baseline category of no change) that a country's GDP difference will be positive, when the country is not a democracy and the country's average ratio of fuel exports to total exports in 1984-1986 did not exceed 50 percent.
+\noindent The odds are 93.11 times higher that a country's GDP difference will be positive (as opposed to the baseline category of "no change"), when the country is not a democracy and the country's average ratio of fuel exports to total exports in 1984-1986 did not exceed 50 percent.
+
 
 \vspace{.25cm}
 
-\noindent In a given country, there is 3.97 times higher odds (relative to the baseline category of no change) that the GDP difference will be negative when the country is a democracy.
+\noindent In a given country, holding OIL constant, there is 3.97 times higher odds (relative to the baseline category of "no change") that the GDP difference will be negative when the country is a democracy.
 
 \vspace{.25cm}
 
-\noindent In a given country, there is 5.87 times higher odds (relative to the baseline category of no change) that the GDP difference will be positive when the country is a democracy.
+\noindent In a given country, holding OIL constant, there is 5.87 times higher odds (relative to the baseline category of "no change") that the GDP difference will be positive when the country is a democracy.
 
 \vspace{.25cm}
 
-\noindent In a given country, there is 119.58 times higher odds (relative to the baseline category of no change) that the GDP difference will be negative when the country's average ratio of fuel exports to total exports in 1984-1986 exceeded 50 percent.
+\noindent In a given country, holding REG constant, there is 119.58 times higher odds (relative to the baseline category of "no change") that the GDP difference will be negative when the country's average ratio of fuel exports to total exports in 1984-1986 exceeded 50 percent.
 
 \vspace{.25cm}
 
-\noindent In a given country, there is 97.17 times higher odds (relative to the baseline category of no change) that the GDP difference will be positive when the country's average ratio of fuel exports to total exports in 1984-1986 exceeded 50 percent.
+\noindent In a given country, holding REG constant, there is 97.17 times higher odds (relative to the baseline category of "no change") that the GDP difference will be positive when the country's average ratio of fuel exports to total exports in 1984-1986 exceeded 50 percent.
 
 \begin{enumerate}
 	\item [(2)] Ordered Multinomial Logit
@@ -234,7 +239,7 @@ positive    93.10789 5.865024  97.15632
 
 \lstinputlisting[language=R, firstline=64, lastline=64]{PS3_KC.R}
 
-\noindent I ran an ordered multinomial logit, like above, regressing GDPWdiff\_category against the variables REG and OIL (with no interaction). 
+\noindent I ran an ordered multinomial logit, regressing GDPWdiff\_ordered against the variables REG and OIL (with no interaction). 
 
 \lstinputlisting[language=R, firstline=66, lastline=67]{PS3_KC.R}
 
@@ -270,7 +275,7 @@ AIC: 4695.689
 
 \noindent The cutoff between the no change and positive category is -0.7105 
 
-\noindent The cutoffs define the boundaries between how the model predicts category assignments. However, they are on a latent scale, so they lack interpretable units. 
+\noindent The cutoffs define the boundaries between how the model predicts category assignments. These thresholds are the graphical boundaries between categories. However, they are on a latent scale, so they lack interpretable units. 
 
 \lstinputlisting[language=R, firstline=69, lastline=69]{PS3_KC.R}
 
@@ -330,7 +335,7 @@ Number of Fisher Scoring iterations: 7
 	\item [(b)] Interpret the marginality.06 and PAN.governor.06 coefficients.
 \end{enumerate}
 
-\noindent For a one-unit increase in marginality.06, holding other variables constant, on average the log count of district visits decreases by approximately 2.08.
+\noindent For a one-unit increase in marginality.06 (representing the change from average poverty to high poverty), holding other variables constant, on average the log count of district visits decreases by approximately 2.08.
 
 \lstinputlisting[language=R, firstline=136, lastline=136]{PS3_KC.R}
 
@@ -342,7 +347,7 @@ Number of Fisher Scoring iterations: 7
 
 \vspace{.25cm}
 
-\noindent For a one-unit increase in PAN.governor.06, holding other variables constant, on average the log count of district visits decreases by approximately 0.31.
+\noindent For a one-unit increase in PAN.governor.06 (representing the change from districts without a PAN governor to districts with a PAN governor), holding other variables constant, on average the log count of district visits decreases by approximately 0.31.
 
 \lstinputlisting[language=R, firstline=138, lastline=138]{PS3_KC.R}
 
