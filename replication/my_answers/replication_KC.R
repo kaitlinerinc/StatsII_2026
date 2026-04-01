@@ -1,0 +1,415 @@
+library(dplyr)
+library(tidyverse)
+library(nlme)
+library(foreign)
+library(stargazer)
+library(ggplot2)
+library(lmtest)
+library(sandwich)
+library(janitor)
+
+data_long <- read.dta("Replication data - long.dta")
+data_short <- data.frame(read.dta("Replication data - short.dta"))
+
+# Table 1
+
+# Prepare data for GLS to match the original study
+data_gls <- data_long %>%
+  filter(!is.na(zFDlaborfemale), !is.na(zFDlogGDPcap_1)) %>%
+  group_by(id2) %>%
+  arrange(year) %>%
+  slice(-1) %>% 
+  ungroup() %>%
+  mutate(id2.factor = as.factor(id2))
+
+# Model 1.1
+model_1.1 <- gls(zFDlaborfemale ~ zFDlogGDPcap_1 + zFDlogGDPcapSQ_1 + zFDage_1 + id2.factor, 
+                 data = data_gls, 
+                 correlation = corAR1(0.1, form = ~year|id2.factor), method = "ML")
+
+# Model 1.2
+model_1.2 <- update(model_1.1, . ~ . + zFDoil_gas_rentPOP_1)
+
+# Exclude Kuwait and Saudi Arabia
+data_gls_no_oil <- data_gls %>% filter(!id %in% c("KWT", "SAU"))
+
+# Model 1.3
+model_1.3 <- gls(zFDlaborfemale ~ zFDlogGDPcap_1 + zFDlogGDPcapSQ_1 + zFDage_1 + 
+                   zFDoil_gas_rentPOP_1 + id2.factor,
+                 data = data_gls_no_oil, 
+                 correlation = corCAR1(0.2, form = ~year|id2.factor), method = "ML")
+
+# Prepare data for OLS to match the original study
+data_ols <- data_long %>%
+  filter(!is.na(zFDlaborfemale), !is.na(zFDlogGDPcap_1)) %>%
+  mutate(id2.factor = as.factor(id2), year.factor = as.factor(year))
+
+# Model 1.4 
+model_1.4 <- lm(zFDlaborfemale ~ zFDlogGDPcap_1 + zFDlogGDPcapSQ_1 + zFDage_1 + 
+                  zFDoil_gas_rentPOP_1 + id2.factor + year.factor, data = data_ols)
+
+#Table 1 Stargazer
+stargazer(model_1.1, model_1.2, model_1.3, model_1.4, 
+          type = "latex", 
+          title = "TABLE 1. Pooled Time-Series Cross-national Regressions, with First Differences and Fixed Effects",
+          dep.var.labels = "Female Labor Force Participation, 1960-2002",
+          covariate.labels = c("Income (log)", 
+                               "Income squared (log)", 
+                               "Working Age", 
+                               "Oil Rents per capita"),
+          omit = c("id2.factor", "year.factor"),
+          omit.stat = c("f", "ser"))
+
+# Table 2
+
+# Models 2.1 - 2.4
+model_2.1 <- lm(zlaborfemaleMOD ~ zlogGDPcap + zlogGDPcap2 + zage15_64 + zme_nafr + zcommie, data = data_short)
+model_2.2 <- update(model_2.1, . ~ . + zislam)
+model_2.3 <- update(model_2.1, . ~ . + zoil_gas_rentPOP)
+model_2.4 <- update(model_2.1, . ~ . + zislam + zoil_gas_rentPOP)
+
+# Robust SEs for Table 2
+model_2_list <- list(model_2.1, model_2.2, model_2.3, model_2.4)
+model_2_se <- lapply(model_2_list, function(x) sqrt(diag(vcovHC(x, type = "HC1"))))
+
+stargazer(model_2_list, se = model_2_se, 
+          type="latex",
+          column.sep.width = "0",
+          font.size = "small",
+          df = FALSE,
+          title="Table 2. Cross-national Regressions on Female Labor Force",
+          dep.var.labels = "Female Nonagricultural Labor Force Participation, 1993-2002",
+          covariate.labels = c("Income (log)",
+                               "Income squared (log)",
+                               "Working Age",
+                               "Middle East",
+                               "Communist",
+                               "Islam",
+                               "Oil Rents per capita"))
+
+          
+# Table 3
+
+# Middle Eastern, Islamic, and Developed nation vectors
+islamic <- c("ARE", "BHR", "OMN", "QAT", "DZA", "EGY", "IRN", "IRQ", "JOR", "LBN", "MAR", "SYR", "TUN", "YEM", "AFG", "AZE", "BFA", "BGD", "BRN", "COM", "DJI", "GIN", "GMB", "IDN", "KGZ", "MDV", "MLI", "MRT", "MYS", "NER", "PAK", "SDN", "SEN", "SLE", "SOM", "TCD", "TJK", "TKM", "TUR", "UZB")
+developed <- c("USA", "CAN", "JPN", "GBR", "FRA", "GER", "ITA", "ESP", "SWE", "NOR", "DNK", "NLD", "BEL", "AUT", "CHE", "FIN", "IRL", "PRT", "GRC", "AUS", "NZL", "ISL", "LUX")
+
+data_table_3 <- data_short %>%
+  filter(!id %in% c("SAU", "KWT"), !is.na(female_seats)) %>%
+  mutate(
+    oil_rich = ifelse(zoil_gas_rentPOP >= quantile(zoil_gas_rentPOP, 1-(38/159), na.rm=T), "Oil-rich", "Oil-poor"),
+    income_status = ifelse(zlogGDPcap > -0.12, "High Income", "Low Income"),
+    is_me = (me_nafr == 1), is_islamic = id %in% islamic, is_dev = !id %in% developed
+  )
+
+get_rep_mean <- function(df, row_filt, col_val) {
+  val <- df %>% filter(!!enquo(row_filt), oil_rich == col_val) %>% summarise(m = mean(female_seats, na.rm = TRUE)) %>% pull(m)
+  return(round(val, 1))
+}
+
+table3_calculated <- data.frame(
+  Group = c("High Income", "Low Income", "Middle East", "Non-Middle East (all)", "Non-Middle East (dev)", "Islamic", "Non-Islamic (all)", "Non-Islamic (dev)"),
+  Oil_Rich = c(get_rep_mean(data_table_3, income_status=="High Income", "Oil-rich"), get_rep_mean(data_table_3, income_status=="Low Income", "Oil-rich"), get_rep_mean(data_table_3, is_me, "Oil-rich"), get_rep_mean(data_table_3, !is_me, "Oil-rich"), get_rep_mean(data_table_3 %>% filter(is_dev), !is_me, "Oil-rich"), get_rep_mean(data_table_3, is_islamic, "Oil-rich"), get_rep_mean(data_table_3, !is_islamic, "Oil-rich"), get_rep_mean(data_table_3 %>% filter(is_dev), !is_islamic, "Oil-rich")),
+  Oil_Poor = c(get_rep_mean(data_table_3, income_status=="High Income", "Oil-poor"), get_rep_mean(data_table_3, income_status=="Low Income", "Oil-poor"), get_rep_mean(data_table_3, is_me, "Oil-poor"), get_rep_mean(data_table_3, !is_me, "Oil-poor"), get_rep_mean(data_table_3 %>% filter(is_dev), !is_me, "Oil-poor"), get_rep_mean(data_table_3, is_islamic, "Oil-poor"), get_rep_mean(data_table_3, !is_islamic, "Oil-poor"), get_rep_mean(data_table_3 %>% filter(is_dev), !is_islamic, "Oil-poor"))
+)
+
+print("TABLE 3. Parliamentary Seats Held by Woman, 2002 (percentage)"); print(table3_calculated)
+
+# Table 4
+
+model_4.1 <- lm(zfemale_seats ~ zlogGDPcap + zme_nafr, data = data_short)
+model_4.2 <- update(model_4.1, . ~ . + zislam)
+model_4.3 <- update(model_4.1, . ~ . + zoil_gas_rentPOP)
+model_4.4 <- update(model_4.1, . ~ . + zislam + zoil_gas_rentPOP)
+model_4.5 <- update(model_4.4, . ~ . + zpolity)
+model_4.6 <- update(model_4.5, . ~ . + zPR_MOD)
+model_4.7 <- update(model_4.6, . ~ . + zclosed_list)
+model_4.8 <- update(model_4.4, . ~ . + zlaborfemaleMOD)
+
+model_4_list <- list(model_4.1, model_4.2, model_4.3, model_4.4, model_4.5, model_4.6, model_4.7, model_4.8)
+model_4_se <- lapply(model_4_list, function(x) sqrt(diag(vcovHC(x, type = "HC1"))))
+
+stargazer(model_4_list,
+          se = model_4_se,
+          type="latex",
+          title="Table 4. Cross-national Regressions on Female Seats in Parliament",
+          font.size = "small",
+          column.sep.width = "-15pt",
+          df = FALSE,
+          dep.var.labels = "Parliamentary Seats Held by Women (percent), 2002",
+          covariate.labels = c("Income (log)",
+                               "Middle East",
+                               "Islam",
+                               "Oil Rents per Capita",
+                               "Polity",
+                               "Proportional Representation",
+                               "Closed List",
+                               "Female Labor Force Participation"))
+
+
+# Table 5
+
+model_5.1 <- lm(zfemale_min ~ zlogGDPcap + zme_nafr, data = data_short)
+model_5.2 <- update(model_5.1, . ~ . + zislam)
+model_5.3 <- update(model_5.1, . ~ . + zoil_gas_rentPOP)
+model_5.4 <- update(model_5.1, . ~ . + zislam + zoil_gas_rentPOP)
+model_5.5 <- update(model_5.4, . ~ . + zlaborfemaleMOD)
+
+model_5_list <- list(model_5.1, model_5.2, model_5.3, model_5.4, model_5.5)
+model_5_se <- lapply(model_5_list, function(x) sqrt(diag(vcovHC(x, type = "HC1"))))
+
+stargazer(model_5_list,
+          se = model_5_se,
+          type="latex",
+          df = FALSE,
+          title="Table 5. Cross-national Regressions on Female Ministerial Positions 2002",
+          dep.var.labels = "Female Ministerial Positions 2002",
+          covariate.labels = c("Income (log)",
+                               "Middle East",
+                               "Islam",
+                               "Oil Rents per Capita",
+                               "Female Labor Force Participation"))
+
+# Table 6
+
+econ_2003 <- data_long %>%
+  filter(id %in% c("DZA", "MAR", "TUN"), year == 2003) %>%
+  mutate(Income = round(exp(logGDPcap), 0), Oil = round(oil_gas_rentPOP, 0)) %>%
+  select(id, Income, Oil)
+
+table_6_calc <- data_short %>%
+  filter(id %in% c("DZA", "MAR", "TUN")) %>%
+  left_join(econ_2003, by = "id") %>%
+  mutate(
+    Country = case_when(id == "DZA" ~ "Algeria", id == "MAR" ~ "Morocco", id == "TUN" ~ "Tunisia"),
+    `Muslim population (%)` = case_when(id == "DZA" ~ 97, id == "MAR" ~ 98, id == "TUN" ~ 99),
+    `Fertility Rate` = case_when(id == "DZA" ~ 2.72, id == "MAR" ~ 2.66, id == "TUN" ~ 1.99),
+    `Textile exports per capita` = case_when(id == "DZA" ~ 0.09, id == "MAR" ~ 94, id == "TUN" ~ 287),
+    `Income per capita` = Income, `Oil rents per capita` = Oil,
+    `Female Labor (%)` = round(laborfemaleMOD, 1), `Female Seats (%)` = round(female_seats, 1),
+    `Gender Rights Index` = round(gender_rights, 2)
+  ) %>%
+  select(Country, `Muslim population (%)`, `Income per capita`, `Oil rents per capita`, `Textile exports per capita`, `Female Labor (%)`, `Female Seats (%)`, `Fertility Rate`, `Gender Rights Index`)
+
+table_6_final <- table_6_calc %>%
+  mutate(across(everything(), as.character)) %>%
+  pivot_longer(cols = -Country, names_to = "Variable") %>%
+  pivot_wider(names_from = Country) %>%
+  mutate(Algeria = ifelse(Variable == "Female Labor (%)", "12 (est.)", Algeria), Tunisia = ifelse(Variable == "Female Labor (%)", "n.a.", Tunisia))
+
+print("Table 6. Comparison of Algeria, Morocco, and Tunisia")
+print(table_6_final)
+
+# Figures
+
+# Note: Figure 1 is excluded because it is a flow chart, not a plot of the data
+
+# Figure 2
+raw_oil_2002 <- data_long %>% filter(year == 2002) %>% select(id, oil_gas_rentPOP)
+plot_data_f2 <- data_short %>% left_join(raw_oil_2002, by = "id") %>% filter(!id %in% c("SAU", "KWT"), !is.na(oil_gas_rentPOP), !is.na(female_seats))
+
+jpeg(file="figure2.jpeg")
+ggplot(plot_data_f2, aes(x = oil_gas_rentPOP, y = female_seats)) +
+  geom_smooth(method = "lm") +
+  coord_cartesian(xlim = c(0, 6000), ylim = c(0, 20)) +
+  labs(title = "Effect of Oil Rents on Female Parliamentary Seats", x = "Oil and Gas Rents per Capita (USD)", y = "Women in Parliament (%)")
+dev.off()
+
+# Figure 3
+oil_averages <- data_long %>% filter(year >= 1993, year <= 2002) %>% group_by(id) %>% summarise(raw_oil = mean(oil_gas_rentPOP, na.rm = TRUE))
+
+jpeg(file="figure3.jpeg")
+data_short %>% filter(me_nafr == 1) %>% left_join(oil_averages, by = "id") %>%
+  ggplot(aes(x = raw_oil, y = laborfemaleMOD, label = id)) +
+  geom_point(color = "black", size = 2) + geom_text(size = 2.5, vjust = -1, hjust = 0.5) +
+  scale_x_continuous(name = "Oil and Gas Rents per capita, 1993-2002", breaks = seq(0, 15000, 5000)) +
+  scale_y_continuous(name = "Female Percent of Nonagricultural Labor Force, 1993-2002", breaks = seq(0, 40, 10)) +
+  coord_cartesian(xlim = c(0, 15000), ylim = c(0, 40)) + theme_bw() + theme(panel.grid.minor = element_blank())
+dev.off()
+
+
+# Figure 4
+suffrage_years <- data.frame(id = c("DJI", "SYR", "LBN", "EGY", "TUN", "DZA", "IRN", "LBY", "MAR", "YEM", "BHR", "JOR", "IRQ", "OMN", "QAT", "SAU", "ARE", "KWT"), suffrage_year = c(1946, 1949, 1952, 1956, 1959, 1962, 1963, 1964, 1967, 1970, 1973, 1974, 1980, 1994, 1999, 2005, 2005, 2005))
+
+jpeg(file="figure4.jpeg")
+suffrage_years %>% left_join(data_long %>% select(id, year, oil_gas_rentPOP), by = c("id" = "id", "suffrage_year" = "year")) %>%
+  mutate(oil_at_suffrage = ifelse(is.na(oil_gas_rentPOP), 0, oil_gas_rentPOP)) %>%
+  ggplot(aes(x = oil_at_suffrage, y = suffrage_year, label = id)) +
+  geom_point() + geom_text(size = 3, vjust = -1) +
+  scale_x_continuous(name = "Oil and Gas Value per capita in Year of Female Suffrage (constant 2000 dollars)", limits = c(0, 20000), breaks = seq(0, 20000, 5000)) +
+  scale_y_continuous(name = "Year of Female Suffrage", limits = c(1940, 2010), breaks = seq(1940, 2010, 10)) +
+  theme_bw() + theme(panel.grid.minor = element_blank())
+dev.off()
+
+
+# Figure 5
+jpeg(file="figure5.jpeg")
+data_short %>% filter(me_nafr == 1) %>% select(id, female_seats) %>% left_join(oil_averages, by = "id") %>%
+  mutate(female_seats = ifelse(is.na(female_seats), 0, female_seats)) %>%
+  ggplot(aes(x = raw_oil, y = female_seats, label = id)) +
+  geom_point() + geom_text(size = 2.8, vjust = -1.1) +
+  scale_x_continuous(name = "Oil and Gas Rents per capita, 1993-2002", limits = c(0, 15000), breaks = seq(0, 15000, 5000)) +
+  scale_y_continuous(name = "Parliamentary Seats Held by Women, 2003 (%)", limits = c(0, 25), breaks = seq(0, 25, 5)) +
+  theme_bw() + theme(panel.grid.minor = element_blank())
+dev.off()
+
+
+# Figure 6
+jpeg(file="figure6.jpeg")
+data_short %>% filter(me_nafr == 1) %>% left_join(oil_averages, by = "id") %>%
+  ggplot(aes(x = raw_oil, y = gender_rights, label = id)) +
+  geom_point() + geom_text(size = 3, vjust = -1) +
+  scale_x_continuous(name = "Oil and Gas Rents per capita, 1993-2002", breaks = seq(0, 12500, 2500)) +
+  scale_y_continuous(name = "Gender Rights", breaks = seq(1.25, 3.5, 0.25)) +
+  coord_cartesian(xlim = c(0, 12500), ylim = c(1.25, 3.5)) +
+  theme_bw() + theme(panel.grid.minor = element_blank())
+dev.off()
+
+###############################################################################
+# My Twist
+
+# Load the Natural Resource Rent CSV
+new_resource_data <- read_csv("natural_resource_rents.csv", 
+                              skip = 4, 
+                              show_col_types = FALSE)
+
+# Years of the study (1960-2002)
+study_years <- as.character(1960:2002)
+
+# Prioritize 2002 data, but use the 1960-2002 average if there is no 2002 data
+resource_clean <- new_resource_data %>%
+  select(id = `Country Code`, all_of(study_years)) %>%
+  # Convert year columns to numeric
+  mutate(across(all_of(study_years), as.numeric)) %>%
+  rowwise() %>%
+  # Calculate mean across the row for the period of the study
+  mutate(study_avg = mean(c_across(all_of(study_years)), na.rm = TRUE)) %>%
+  ungroup() %>%
+  # If 2002 is missing, use the average of all of the years in the study
+  mutate(rent_final = ifelse(!is.na(`2002`), `2002`, study_avg)) %>%
+  select(id, rent_final) %>%
+  filter(!is.na(rent_final))
+
+# Merge the 'new_resource_data' with Ross's 'data_short' dataframe
+data_short_updated <- data_short %>%
+  left_join(resource_clean, by = "id") %>%
+  # Use standardized data (Z-scores), to follow Ross's methodology
+  mutate(znat_res_rent = (rent_final - mean(rent_final, na.rm = TRUE)) / 
+           sd(rent_final, na.rm = TRUE))
+
+##################################################################################
+
+# Oil female labor model 
+female_labor_model_original <- lm(zlaborfemaleMOD ~ zlogGDPcap + zlogGDPcap2 + zage15_64 +
+                                  zme_nafr + zcommie + zislam + zoil_gas_rentPOP,
+                                  data = data_short_updated)
+
+# Natural resource female labor model
+female_labor_model_twist <- lm(zlaborfemaleMOD ~ zlogGDPcap + zlogGDPcap2 + zage15_64 +
+                               zme_nafr + zcommie + zislam + znat_res_rent,
+                               data = data_short_updated)
+
+stargazer(female_labor_model_original, female_labor_model_twist, type = "text",
+          title="Female Labor Participation: Oil Model and Natural Resources Model",
+          dep.var.labels = "Female Labor Force Participation",
+          covariate.labels = c("Income (log)",
+                               "Income squared (log)",
+                               "Working Age",
+                               "Middle East",
+                               "Communist",
+                               "Islam",
+                               "Oil Rents per Capita",
+                               "Natural Resource Rents per Capita"))
+
+#######################################################################################
+# Oil female seats model 
+female_seats_model_original <- lm(zfemale_seats ~ zlogGDPcap + zlogGDPcap2 + zage15_64 + 
+                       zme_nafr + zcommie + zislam + zoil_gas_rentPOP, 
+                     data = data_short_updated)
+
+# Natural resources female seats model 
+female_seats_model_twist <- lm(zfemale_seats ~ zlogGDPcap + zlogGDPcap2 + zage15_64 + 
+                        zme_nafr + zcommie + zislam + znat_res_rent, 
+                      data = data_short_updated)
+
+stargazer(female_seats_model_original, female_seats_model_twist,
+          type = "latex",
+          title="Female Seats (2002): Oil Model and Natural Resources Model",
+          dep.var.labels = "Parliamentary Seats Held by Women (percent), 2002",
+          covariate.labels = c("Income (log)",
+                               "Income squared (log)",
+                               "Working Age",
+                               "Middle East",
+                               "Communist",
+                               "Islam",
+                               "Oil Rents per Capita",
+                               "Natural Resource Rents per Capita"))
+
+###################################################################################
+
+# Oil female minister model 
+female_minister_model_original <- lm(zfemale_min ~ zlogGDPcap + zlogGDPcap2 + zage15_64 + 
+                                    zme_nafr + zcommie + zislam + zoil_gas_rentPOP,
+                                    data = data_short_updated)
+
+# Natural resources female minister model 
+female_minister_model_twist <- lm(zfemale_min ~ zlogGDPcap + zlogGDPcap2 + zage15_64 + 
+                                  zme_nafr + zcommie + zislam + znat_res_rent, 
+                                  data = data_short_updated)
+
+stargazer(female_minister_model_original, female_minister_model_twist,
+          type = "latex",
+          title="Female Ministers (2002): Oil Model and Natural Resources Model",
+          dep.var.labels = "Ministerial Seats Held by Women (%) 2002",
+          covariate.labels = c("Income (log)",
+                               "Income squared (log)",
+                               "Working Age",
+                               "Middle East",
+                               "Communist",
+                               "Islam",
+                               "Oil Rents per Capita",
+                               "Natural Resource Rents per Capita"))
+
+###################################################################################
+
+# Prepare data for plotting
+plot_data_tidy <- data_short_updated %>%
+  select(id, laborfemaleMOD, female_seats, female_min,
+         `Oil Rents` = zoil_gas_rentPOP, 
+         `Natural Resource Rents` = znat_res_rent) %>%
+  pivot_longer(cols = c(`Oil Rents`, `Natural Resource Rents`), 
+               names_to = "Rent_Type", 
+               values_to = "Z_Score")
+
+# 1. Female Labor Plot
+jpeg("Female_Labor.jpeg", width=800, height=600)
+ggplot(plot_data_tidy, aes(x = Z_Score, y = laborfemaleMOD)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red") +
+  facet_wrap(~Rent_Type, scales = "free_x") +
+  labs(title = "Female Labor Participation (%)",
+       x = "Standardized Rents (Z-Score)", y = "Female Labor Participation (%)") +
+  theme_minimal()
+dev.off()
+
+# 2. Female Seats Plot
+jpeg("Female_Seats.jpeg", width=800, height=600)
+ggplot(plot_data_tidy, aes(x = Z_Score, y = female_seats)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "green") +
+  facet_wrap(~Rent_Type, scales = "free_x") +
+  labs(title = "Female Seats in Parliament (%)",
+       x = "Standardized Rents (Z-Score)", y = "Female Seats in Parliament (%)") +
+  theme_minimal()
+dev.off()
+
+# 3. Female Ministers Plot
+jpeg("Female_Ministers.jpeg", width=800, height=600)
+ggplot(plot_data_tidy, aes(x = Z_Score, y = female_min)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "blue") +
+  facet_wrap(~Rent_Type, scales = "free_x") +
+  labs(title = "Female Ministerial Positions",
+       x = "Standardized Rents (Z-Score)", y = "Female Ministerial Positions (%)") +
+  theme_minimal()
+dev.off()
