@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.10.2)  10 APR 2026 22:02
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.10.2)  10 APR 2026 23:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -952,7 +952,9 @@ alizedDamageEMLogged,[]
 
 [3]
 
-[4] (PS04_KC.aux)
+[4]
+
+[5] (PS04_KC.aux)
  ***********
 LaTeX2e <2025-06-01> patch level 1
 L3 programming layer <2025-09-02>
@@ -961,9 +963,9 @@ Package rerunfilecheck Info: File `PS04_KC.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 27267 strings out of 468129
- 478437 string characters out of 5430612
- 1156580 words of memory out of 5000000
+ 27268 strings out of 468129
+ 478443 string characters out of 5430612
+ 1156546 words of memory out of 5000000
  55386 multiletter control sequences out of 15000+600000
  637264 words of font info for 84 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -978,9 +980,9 @@ MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/unity/AppData/Local/P
 rograms/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Users/unity/AppData
 /Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/unity/
 AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on PS04_KC.pdf (4 pages, 108670 bytes).
+Output written on PS04_KC.pdf (5 pages, 110545 bytes).
 PDF statistics:
- 93 PDF objects out of 1000 (max. 8388607)
- 22 named destinations out of 1000 (max. 500000)
+ 97 PDF objects out of 1000 (max. 8388607)
+ 23 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 

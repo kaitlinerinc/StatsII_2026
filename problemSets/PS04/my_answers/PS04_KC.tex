@@ -88,11 +88,11 @@
 \section*{Question 1: Answer}
 \vspace{.5cm}
 
-\noindent Load the data on child mortality by mother's background and child gender
+\noindent Load the data on child mortality
 
 \lstinputlisting[language=R, firstline=45, lastline=45]{PS04_KC.R}
 
-\noindent Fit a Cox Proportional Hazard model and summarize the results 
+\noindent Fit a Cox Proportional Hazard model that uses mother's age and infant's gender as covariates and summarize the results 
 
 \lstinputlisting[language=R, firstline=47, lastline=49]{PS04_KC.R}
 
@@ -123,7 +123,7 @@ Score (logrank) test = 22.53  on 2 df,   p=1e-05
 
 \vspace{.5cm}
 
-\noindent For every one unit increase in the mother's age, there is a 0.007617 increase in the expected log of the hazard for babies, holding sex constant. For every one unit increase in the mother's age, there is a 0.76 percent increase in the expected hazard for babies, holding sex constant.
+\noindent For every one unit increase in the mother's age, there is a 0.007617 increase in the expected log of the hazard for babies, holding infant's gender constant. For every one unit increase in the mother's age, there is a 0.76 percent increase in the expected hazard for babies, holding infant's gender constant.
 
 \newpage
 
@@ -135,7 +135,7 @@ Score (logrank) test = 22.53  on 2 df,   p=1e-05
 
 \vspace{.5cm}
 
-\noindent The OLS model
+\noindent The OLS model:
 \lstinputlisting[language=R, firstline=71, lastline=72]{PS04_KC.R}
 
 \begin{verbatim}
@@ -152,19 +152,14 @@ normalizedDamageEMLogged
 
 \noindent Interpretation:
 
-\vspace{.5cm}
+\begin{itemize}
+\item A one unit increase in occurrences is associated with a 0.3520 percentage point increase in the probability of donation, on average and holding all else constant.
 
-\noindent A one unit increase in occurrences is associated with a 0.3520 percentage point increase in the probability of donation, on average and holding all else constant.
+\item A one unit increase in deathsEM is associated with a 0.3854 percentage point increase in the probability of donation, on average and holding all else constant.
 
-\vspace{.5cm}
+\item A one unit increase in normalizedDamageEMLogged is associated with a 0.2549 percentage point increase in the probability of donation, on average and holding all else constant.
 
-\noindent A one unit increase in deathsEM is associated with a 0.3854 percentage point increase in the probability of donation, on average and holding all else constant.
-
-\vspace{.5cm}
-
-\noindent A one unit increase in normalizedDamageEMLogged is associated with a 0.2549 percentage point increase in the probability of donation, on average and holding all else constant.
-
-\vspace{.5cm}
+\end{itemize}
 
 \lstinputlisting[language=R, firstline=80, lastline=84]{PS04_KC.R}
 
@@ -200,14 +195,35 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 --------------------------------------------
 \end{verbatim}
 
-\noindent None of the covariates are statistically different than zero in outcome equation.
+\noindent In the Probit selection equation, all of the covariates (occurrences, deathsEM, and normalizedDamageEMLogged) are highly significant in predicting the likelihood of donation occurring.
+
+\begin{itemize}
+\item A one unit increase in disaster occurrences is associated with a 0.019 increase in the predicted z-score of a donation occurring, on average and holding all else constant.
+
+\item A one unit increase in deathsEM is associated with a 0.011 increase in the predicted z-score of a donation occurring, on average and holding all else constant.
+
+\item A one unit increase in normalizedDamageEMLogged is associated with a 0.021 increase in the predicted z-score of a donation occurring, on average and holding all else constant.
+\end{itemize}
+
+\newpage
+
+\noindent However, in the outcome equation, none of the covariates are statistically different than zero in predicting the amount of the donation.
+
+\begin{itemize}
+\item A one unit increase in disaster occurrences is associated with a 0.086 decrease in the log transformed original contribution amount (million USD), on average and holding all else constant.
+
+\item A one unit increase in deathsEM is associated with a 0.033 decrease in the log transformed original contribution amount (million USD), on average and holding all else constant.
+
+\item A one unit increase in normalizedDamageEMLogged is associated with a 0.114 decrease in the log transformed original contribution amount (million USD), on average and holding all else constant.
+
+\end{itemize}
 
 \vspace{.5cm}
 
-\noindent The p-value of invMillsRatio is 0.0649, which is above our critical value of 0.05. Therefore, we fail to reject the null hypothesis that there is no selection bias happening in OLS that needs to be accounted for with a Heckman selection model. Therefore, we can continue to use the OLS model.
+\noindent The p-value of invMillsRatio is 0.0649, which is above our critical value of 0.05. Therefore, we fail to reject the null hypothesis that there is no selection bias happening in OLS that needs to be accounted for with a Heckman selection model. Therefore, an OLS model is appropriate for predicting originalContributionMillionUSDLogged.
 
 \vspace{.5cm}
 
-\noindent This indicates that while there is a limited selection of instances in which donation occurred, it is not biasing the results in predicting the amount of the donation.
+\noindent These results indicate that while there is a limited selection of instances in which donation occurred, it is not biasing the results in predicting the amount of the donation. However, the rho of -1.053 (should fall between -1 and 1) suggests that the model may not be performing properly.
 
 \end{document}
