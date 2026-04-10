@@ -75,7 +75,6 @@
 
 	\end{itemize}
 
-	\vspace{.25cm}
 \section*{Question 1}
 \vspace{.25cm}
 \noindent We're interested in modeling the historical causes of child mortality. We have data from 26855 children born in Skellefteå, Sweden from 1850 to 1884. Using the "child" dataset in the \texttt{eha} library, fit a Cox Proportional Hazard model using mother's age and infant's gender as covariates. Present and interpret the output.
@@ -83,5 +82,132 @@
 \section*{Question 2}
 \vspace{.25cm}
 \noindent We want to estimate how the amount of damage caused by a disaster relates to (1) whether disaster relief is provided and (2) the amount of relief that is provided  conditional on a donation occurring when a disaster hits a given country. Estimate a Heckman selection model using the \texttt{disasters\_response} data on \href{https://raw.githubusercontent.com/ASDS-TCD/StatsII_2026/refs/heads/main/datasets/disaster_response.csv}{GitHub} in which \texttt{binContribution} is the outcome for the selection equation, and \texttt{originalContributionMillionUSDLogged} is the outcome for the second equation. Use \texttt{occurrences  + deathsEM + normalizedDamageEMLogged} as your input variables for both equations. Present and interpret the output.
+
+\newpage
+
+\section*{Question 1: Answer}
+\vspace{.5cm}
+
+\noindent Load the data on child mortality by mother's background and child gender
+
+\lstinputlisting[language=R, firstline=45, lastline=45]{PS04_KC.R}
+
+\noindent Fit a Cox Proportional Hazard model and summarize the results 
+
+\lstinputlisting[language=R, firstline=47, lastline=49]{PS04_KC.R}
+
+\begin{verbatim}
+Call:
+coxph(formula = child_surv ~ sex + m.age, data = child)
+
+n= 26574, number of events= 5616 
+
+           coef     exp(coef)  se(coef)      z Pr(>|z|)    
+sexfemale -0.082215  0.921074  0.026743 -3.074 0.002110 ** 
+m.age      0.007617  1.007646  0.002128  3.580 0.000344 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+            exp(coef) exp(-coef) lower .95 upper .95
+sexfemale    0.9211     1.0857     0.874    0.9706
+m.age        1.0076     0.9924     1.003    1.0119
+
+Concordance= 0.519  (se = 0.004 )
+Likelihood ratio test= 22.52  on 2 df,   p=1e-05
+Wald test            = 22.52  on 2 df,   p=1e-05
+Score (logrank) test = 22.53  on 2 df,   p=1e-05
+\end{verbatim}
+
+\noindent There is a 0.082215 decrease in the expected log of the hazard for female babies compared to male, holding mother's age constant. The hazard ratio of female babies is 0.92 to that of male babies, i.e. female babies are less likely to die (92 female babies die for every 100 male babies/female deaths are 8 percent lower).
+
+
+\vspace{.5cm}
+
+\noindent For every one unit increase in the mother's age, there is a 0.007617 increase in the expected log of the hazard for babies, holding sex constant. For every one unit increase in the mother's age, there is a 0.76 percent increase in the expected hazard for babies, holding sex constant.
+
+\newpage
+
+\section*{Question 2: Answer}
+\vspace{.5cm}
+
+\noindent Load the disaster data
+\lstinputlisting[language=R, firstline=68, lastline=68]{PS04_KC.R}
+
+\vspace{.5cm}
+
+\noindent The OLS model
+\lstinputlisting[language=R, firstline=71, lastline=72]{PS04_KC.R}
+
+\begin{verbatim}
+Call:
+lm(formula = binContribution ~ occurrences + deathsEM + normalizedDamageEMLogged, 
+data = disaster_data)
+
+Coefficients:
+(Intercept)          occurrences          deathsEM  
+   0.092691             0.003520          0.003854  
+normalizedDamageEMLogged  
+                0.002549  
+\end{verbatim}
+
+\noindent Interpretation:
+
+\vspace{.5cm}
+
+\noindent A one unit increase in occurrences is associated with a 0.3520 percentage point increase in the probability of donation, on average and holding all else constant.
+
+\vspace{.5cm}
+
+\noindent A one unit increase in deathsEM is associated with a 0.3854 percentage point increase in the probability of donation, on average and holding all else constant.
+
+\vspace{.5cm}
+
+\noindent A one unit increase in normalizedDamageEMLogged is associated with a 0.2549 percentage point increase in the probability of donation, on average and holding all else constant.
+
+\vspace{.5cm}
+
+\lstinputlisting[language=R, firstline=80, lastline=84]{PS04_KC.R}
+
+\newpage
+
+\noindent Heckman Selection Model:
+\begin{verbatim}
+--------------------------------------------
+Tobit 2 model (sample selection model)
+2-step Heckman / heckit estimation
+49096 observations (45848 censored and 3248 observed)
+11 free parameters (df = 49086)
+Probit selection equation:
+                           Estimate Std. Error t value Pr(>|t|)    
+(Intercept)              -1.3019633  0.0180138  -72.28   <2e-16 ***
+occurrences               0.0191534  0.0016550   11.57   <2e-16 ***
+deathsEM                  0.0114710  0.0007178   15.98   <2e-16 ***
+normalizedDamageEMLogged  0.0211062  0.0009035   23.36   <2e-16 ***
+Outcome equation:
+                          Estimate Std. Error t value Pr(>|t|)  
+(Intercept)               9.76625    6.04404   1.616   0.1061  
+occurrences              -0.08634    0.05492  -1.572   0.1159  
+deathsEM                 -0.03298    0.02569  -1.284   0.1993  
+normalizedDamageEMLogged -0.11420    0.06231  -1.833   0.0668 .
+Multiple R-Squared:0.0546,	Adjusted R-Squared:0.0534
+Error terms:
+              Estimate Std. Error t value Pr(>|t|)  
+invMillsRatio   -6.313      3.420  -1.846   0.0649 .
+sigma            5.992         NA      NA       NA  
+rho             -1.053         NA      NA       NA  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+--------------------------------------------
+\end{verbatim}
+
+\noindent None of the covariates are statistically different than zero in outcome equation.
+
+\vspace{.5cm}
+
+\noindent The p-value of invMillsRatio is 0.0649, which is above our critical value of 0.05. Therefore, we fail to reject the null hypothesis that there is no selection bias happening in OLS that needs to be accounted for with a Heckman selection model. Therefore, we can continue to use the OLS model.
+
+\vspace{.5cm}
+
+\noindent This indicates that while there is a limited selection of instances in which donation occurred, it is not biasing the results in predicting the amount of the donation.
 
 \end{document}
